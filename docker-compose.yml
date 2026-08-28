@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:/app/data/recreation.db
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_DEFAULT_USERNAME=${ADMIN_DEFAULT_USERNAME}
+      - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD}
+      - PISTON_API_URL=http://piston:2000
+    volumes:
+      - sqlite_data:/app/data
+    depends_on:
+      - piston
+
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    privileged: true
+    ports:
+      - "2000:2000"
+    volumes:
+      - piston_packages:/piston/packages
+    tmpfs:
+      - /tmp:exec
+
+volumes:
+  sqlite_data:
+  piston_packages:
