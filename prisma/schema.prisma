@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String // bcrypt-hashed
+  createdAt DateTime @default(now())
+  auditLogs AuditRecord[]
+}
+
+model Session {
+  id                     String      @id @default(cuid())
+  code                   String      @unique // join code, e.g. "AB12CD"
+  status                 String      @default("waiting") // waiting | active | ended
+  currentProblemIndex    Int         @default(0)
+  currentProblemStartedAt DateTime? // when the active problem began
+  createdAt              DateTime    @default(now())
+  participants           Participant[]
+  problemLinks           ProblemOnSession[]
+  submissions            Submission[]
+}
+
+model Participant {
+  id          String    @id @default(cuid())
+  username    String
+  sessionId   String
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  token       String?   @unique // access token after join; null for pre-join blacklist rows
+  joinedAt    DateTime? @default(now())
+  lastSeenAt  DateTime? // presence metadata
+  isActive    Boolean   @default(false) // presence metadata
+  isBlacklisted Boolean @default(false) // true if admin blocked this username
+  submissions Submission[]
+  auditLogs   AuditRecord[]
+
+  @@unique([sessionId, username])
+}
+
+model Problem {
+  id           String      @id @default(cuid())
+  title        String
+  description  String
+  inputFormat  String
+  outputFormat String
+  constraints  String
+  sampleInput  String
+  sampleOutput String
+  starterCode  String?
+  timeLimitMs  Int         @default(5000)
+  points       Int         @default(100)
+  testCases    TestCase[]
+  problemLinks ProblemOnSession[]
+  submissions  Submission[]
+}
+
+model TestCase {
+  id              String           @id @default(cuid())
+  problemId       String
+  problem         Problem          @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  input           String
+  expectedOutput  String
+  isSample        Boolean          @default(false)
+  testCaseResults TestCaseResult[]
+}
+
+model ProblemOnSession {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id])
+  order     Int
+
+  @@unique([sessionId, problemId])
+}
+
+model Submission {
+  id              String           @id @default(cuid())
+  sessionId       String?
+  session         Session?         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId   String
+  participant     Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  problemId       String
+  problem         Problem          @relation(fields: [problemId], references: [id])
+  code            String
+  status          String           // AC | WA | TLE | RE | CE | PENDING
+  score           Int              @default(0)
+  testCasesPassed Int              @default(0)
+  totalTestCases  Int              @default(0)
+  executionTimeMs Int?
+  submittedAt     DateTime         @default(now())
+  isRunOnly       Boolean          @default(false) // true for "Run" (no score), false for "Submit"
+  testCaseResults TestCaseResult[]
+
+  @@index([sessionId])
+  @@index([participantId])
+  @@index([problemId])
+}
+
+model TestCaseResult {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  testCaseId   String
+  testCase     TestCase   @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  status       String     // AC | WA | TLE | RE | CE
+  durationMs   Int?
+  actualOutput String?
+  isSample     Boolean    @default(false)
+  isRunOnly    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@index([submissionId])
+}
+
+model AuditRecord {
+  id            String   @id @default(cuid())
+  action        String
+  actorType     String // admin | participant | system
+  actorId       String?
+  adminId       String?
+  admin         Admin?   @relation(fields: [adminId], references: [id])
+  participantId String?
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  targetType    String?
+  targetId      String?
+  detail        String?
+  ip            String?
+  createdAt     DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
