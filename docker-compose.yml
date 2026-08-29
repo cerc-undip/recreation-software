@@ -23,7 +23,7 @@ services:
     image: ghcr.io/engineer-man/piston:latest
     privileged: true
     ports:
-      - "2000:2000"
+      - "127.0.0.1:2000:2000"
     environment:
       - PISTON_RUN_TIMEOUT=10000
       - PISTON_COMPILE_TIMEOUT=10000
