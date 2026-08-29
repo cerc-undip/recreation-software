@@ -52,6 +52,8 @@ export default function AdminDashboard() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const selected = sessions.find((s) => s.id === selectedId) ?? null;
+  const joinedParticipants = selected?.participants.filter((p) => p.token && !p.isBlacklisted) ?? [];
+  const activeParticipants = joinedParticipants.filter((p) => p.isActive);
 
   const loadSessions = useCallback(async () => {
     const res = await api<SessionData[]>("/api/admin/session");
@@ -131,7 +133,7 @@ export default function AdminDashboard() {
     <main className="min-h-screen bg-gray-50 p-6 text-gray-900">
       <div className="mx-auto flex max-w-4xl flex-col gap-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">CodeArena Admin</h1>
+          <h1 className="text-2xl font-bold">CERC CodeArena Admin</h1>
           <div className="flex gap-2">
             <a
               href="/admin/leaderboard"
@@ -227,6 +229,27 @@ export default function AdminDashboard() {
                   End Session
                 </Button>
               </div>
+            </section>
+
+            <section className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">Joined Participants ({joinedParticipants.length})</h2>
+                <span className="text-xs text-gray-500">{activeParticipants.length} active</span>
+              </div>
+              {joinedParticipants.length === 0 ? (
+                <p className="text-sm text-gray-500">No one has joined yet.</p>
+              ) : (
+                <ul className="flex max-h-48 flex-wrap gap-2 overflow-auto text-sm">
+                  {joinedParticipants.map((p) => (
+                    <li
+                      key={p.id}
+                      className={`rounded border px-2 py-1 ${p.isActive ? "border-green-200 bg-green-50 text-green-800" : "border-gray-200 bg-gray-50 text-gray-600"}`}
+                    >
+                      {p.username}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
 
             <section className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">

@@ -44,9 +44,7 @@ export async function POST(request: NextRequest) {
   });
   if (!problem) return Response.json({ success: false, error: "Problem not found" }, { status: 404 });
 
-  const cases = isRunOnly
-    ? problem.testCases.filter((t) => t.isSample)
-    : problem.testCases;
+  const cases = problem.testCases;
 
   if (cases.length === 0) {
     return Response.json({ success: false, error: "No test cases available" }, { status: 500 });
@@ -80,7 +78,7 @@ export async function POST(request: NextRequest) {
           status = "RE";
           actualOutput = result.message;
       }
-      return { testCaseId: tc.id, status, actualOutput, durationMs, isSample: tc.isSample };
+      return { testCaseId: tc.id, status, actualOutput, durationMs, isSample: tc.isSample, input: tc.input, expectedOutput: tc.expectedOutput };
     })
   );
 
@@ -121,7 +119,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Response: never expose hidden expected outputs
+  // Response: expose inputs and outputs for all cases as requested
   return Response.json({
     success: true,
     data: {
@@ -134,7 +132,9 @@ export async function POST(request: NextRequest) {
         testCaseId: r.testCaseId,
         status: r.status,
         isSample: r.isSample,
-        actualOutput: r.isSample || r.status !== "AC" ? r.actualOutput : null,
+        input: r.input,
+        expectedOutput: r.expectedOutput,
+        actualOutput: r.actualOutput,
       })),
     },
   });

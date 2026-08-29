@@ -7,13 +7,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Starting load test...");
   
-  const session = await prisma.session.findFirst({
-    where: { status: "active" },
-    include: { problemLinks: { include: { problem: true } } }
+  const sessionCode = process.argv[2] ?? "GNZV3B";
+  const session = await prisma.session.findUnique({
+    where: { code: sessionCode },
+    include: { problemLinks: { orderBy: { order: "asc" }, include: { problem: true } } }
   });
 
   if (!session) {
-    console.log("No active session found. Please start a session first.");
+    console.log(`Session ${sessionCode} not found.`);
+    return;
+  }
+  if (session.status !== "active") {
+    console.log(`Session ${sessionCode} is ${session.status}. Start it before load testing submissions.`);
     return;
   }
 
@@ -27,12 +32,12 @@ async function main() {
 
   const participants = await prisma.participant.findMany({
     where: { sessionId: session.id },
-    take: 100
+    take: 150
   });
 
-  if (participants.length < 100) {
-    console.log(`Only ${participants.length} participants found. Creating ${100 - participants.length} more...`);
-    const needed = 100 - participants.length;
+  if (participants.length < 150) {
+    console.log(`Only ${participants.length} participants found. Creating ${150 - participants.length} more...`);
+    const needed = 150 - participants.length;
     const newParticipants = Array.from({ length: needed }).map((_, i) => ({
       username: `load_test_user_${Date.now()}_${i}`,
       sessionId: session.id,
@@ -58,7 +63,7 @@ async function main() {
 
   const allParticipants = await prisma.participant.findMany({
     where: { sessionId: session.id },
-    take: 100
+    take: 150
   });
 
   for (const p of allParticipants) {
@@ -74,8 +79,31 @@ async function main() {
 
   console.log(`Simulating ${allParticipants.length} concurrent submissions...`);
 
-  const code = `
-import sys
+  const codeByProblem: Record<string, string> = {
+    "prob-even-sum": `def solve(numbers_str):
+    nums = [int(x) for x in numbers_str.split()]
+    return sum(x for x in nums if x % 2 == 0)
+`,
+    "prob-palindrome": `def is_palindrome(s):
+    s = s.strip().lower()
+    return str(s == s[::-1])
+`,
+    "prob-fizzbuzz": `def fizzbuzz(n):
+    n = int(n.strip())
+    out = []
+    for i in range(1, n + 1):
+        if i % 15 == 0:
+            out.append("FizzBuzz")
+        elif i % 3 == 0:
+            out.append("Fizz")
+        elif i % 5 == 0:
+            out.append("Buzz")
+        else:
+            out.append(str(i))
+    return " ".join(out)
+`,
+  };
+  const code = codeByProblem[currentProblem.id] ?? `import sys
 print(sys.stdin.read().strip())
 `;
 

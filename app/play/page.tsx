@@ -35,7 +35,7 @@ type SubmitResult = {
   testCasesPassed: number;
   totalTestCases: number;
   isRunOnly: boolean;
-  results: { testCaseId: string; status: string; isSample: boolean; actualOutput: string | null }[];
+  results: { testCaseId: string; status: string; isSample: boolean; input: string; expectedOutput: string; actualOutput: string | null }[];
 };
 
 function authHeaders(): HeadersInit {
@@ -204,7 +204,7 @@ export default function PlayPage() {
             </div>
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => void submit(true)} disabled={busy}>
-                {busy ? "Running..." : "Run (Sample)"}
+                {busy ? "Running..." : "Run All Tests"}
               </Button>
               <Button onClick={() => void submit(false)} disabled={busy}>
                 {busy ? "Submitting..." : "Submit"}
@@ -230,12 +230,32 @@ export default function PlayPage() {
                     {result.isRunOnly ? " (run only, not scored)" : ""}
                   </span>
                 </div>
-                {result.results.map((r) => (
-                  <div key={r.testCaseId} className="flex items-center gap-2 border-t border-gray-100 py-1">
-                    <span className="w-10 font-mono text-xs">{r.status}</span>
-                    {r.actualOutput && <pre className="max-h-20 overflow-auto text-xs text-gray-600">{r.actualOutput}</pre>}
-                  </div>
-                ))}
+                <div className="flex flex-col gap-2">
+                  {result.results.map((r, i) => (
+                    <div key={r.testCaseId} className="flex flex-col gap-1 border-t border-gray-200 pt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">Test Case {i + 1}</span>
+                        <span className={`w-10 font-mono text-xs font-bold ${r.status === "AC" ? "text-green-600" : "text-red-600"}`}>{r.status}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded bg-white p-1.5 border border-gray-200">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase">Input</div>
+                          <pre className="max-h-20 overflow-auto text-xs text-gray-600">{r.input}</pre>
+                        </div>
+                        <div className="rounded bg-white p-1.5 border border-gray-200">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase">Expected</div>
+                          <pre className="max-h-20 overflow-auto text-xs text-gray-600">{r.expectedOutput}</pre>
+                        </div>
+                      </div>
+                      {r.actualOutput !== null && (
+                        <div className="rounded bg-white p-1.5 border border-gray-200">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase">Terminal Output</div>
+                          <pre className="max-h-20 overflow-auto text-xs text-gray-600">{r.actualOutput || "(empty output)"}</pre>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </section>

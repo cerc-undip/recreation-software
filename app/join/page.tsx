@@ -40,7 +40,7 @@ export default function JoinPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4 text-gray-900">
       <form onSubmit={handleJoin} className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-gray-200 bg-white p-6 shadow-xl">
-        <h1 className="text-center text-2xl font-bold">Join CodeArena</h1>
+        <h1 className="text-center text-2xl font-bold">Join CERC CodeArena</h1>
         
         {error && <div className="rounded bg-red-100 p-2 text-sm text-red-800">{error}</div>}
 

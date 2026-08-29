@@ -32,6 +32,29 @@ interface PistonExecuteResponse {
 
 const PISTON_API_URL = process.env["PISTON_API_URL"] || "http://localhost:2000";
 
+const PYTHON_FUNCTION_HARNESS = String.raw`
+# CodeArena runner: call returned-function solutions and print return values.
+if __name__ == "__main__":
+    import sys as __codearena_sys
+    __codearena_input = __codearena_sys.stdin.read().rstrip("\n")
+    __codearena_fn = globals().get("solve")
+    if not callable(__codearena_fn):
+        __codearena_user_functions = [
+            __value for __name, __value in globals().items()
+            if callable(__value)
+            and getattr(__value, "__module__", None) == "__main__"
+            and not __name.startswith("__codearena_")
+        ]
+        __codearena_fn = __codearena_user_functions[0] if len(__codearena_user_functions) == 1 else None
+    if callable(__codearena_fn):
+        try:
+            __codearena_result = __codearena_fn(__codearena_input)
+        except TypeError:
+            __codearena_result = __codearena_fn()
+        if __codearena_result is not None:
+            print(__codearena_result)
+`;
+
 let memoizedVersion: string | null = null;
 
 export function _resetCache() {
@@ -120,7 +143,7 @@ export async function runCode(
       body: JSON.stringify({
         language: "python",
         version,
-        files: [{ content: code }],
+        files: [{ content: `${code}\n\n${PYTHON_FUNCTION_HARNESS}` }],
         stdin: input,
         run_timeout: timeLimitMs,
         compile_timeout: 10000,

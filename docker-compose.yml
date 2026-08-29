@@ -14,17 +14,35 @@ services:
     volumes:
       - sqlite_data:/app/data
     depends_on:
-      - piston
+      piston:
+        condition: service_started
+      piston-init:
+        condition: service_completed_successfully
 
   piston:
     image: ghcr.io/engineer-man/piston:latest
     privileged: true
     ports:
       - "2000:2000"
+    environment:
+      - PISTON_RUN_TIMEOUT=10000
+      - PISTON_COMPILE_TIMEOUT=10000
     volumes:
       - piston_packages:/piston/packages
     tmpfs:
       - /tmp:exec
+
+  piston-init:
+    image: curlimages/curl:latest
+    depends_on:
+      - piston
+    command: >
+      sh -c "
+      echo 'Waiting for Piston API...' &&
+      sleep 5 &&
+      curl -s -X POST http://piston:2000/api/v2/packages -H 'Content-Type: application/json' -d '{\"language\": \"python\", \"version\": \"3.10.0\"}' &&
+      echo 'Python installed'
+      "
 
 volumes:
   sqlite_data:
