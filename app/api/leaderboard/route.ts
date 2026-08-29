@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     include: { participant: true, problem: true },
   });
 
-  const records: SubmissionRecord[] = rawSubs.map((s) => ({
+  const records: SubmissionRecord[] = rawSubs.map((s: any) => ({
     id: s.id,
     userId: s.participantId,
     username: s.participant.username,
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     success: true,
     data: {
       leaderboard: board,
-      problems: session.problemLinks.map((l) => ({ id: l.problemId, title: l.problem.title })),
+      problems: session.problemLinks.map((l: any) => ({ id: l.problemId, title: l.problem.title })),
     },
   });
 }

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     include: { participant: true, problem: true },
   });
 
-  const records: SubmissionRecord[] = rawSubs.map((s) => ({
+  const records: SubmissionRecord[] = rawSubs.map((s: any) => ({
     id: s.id,
     userId: s.participantId,
     username: s.participant.username,

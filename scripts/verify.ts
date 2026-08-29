@@ -31,7 +31,7 @@ async function run() {
       include: { testCases: true },
     });
     assertTest("Three problems seeded", problems.length === 3, `Count: ${problems.length}`);
-    const allTestCasesCount = problems.reduce((acc, p) => acc + p.testCases.length, 0);
+    const allTestCasesCount = problems.reduce((acc: number, p: any) => acc + p.testCases.length, 0);
     assertTest("Problems have test cases", allTestCasesCount === 11, `Test cases count: ${allTestCasesCount}`);
 
     const firstProblem = problems[0];

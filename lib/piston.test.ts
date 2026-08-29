@@ -29,7 +29,7 @@ describe("Piston execution adapter", () => {
       stderr: "",
       exitCode: 0,
     });
-    expect(JSON.parse(mockFetch.mock.calls[1][1].body).files[0].content).toContain("CodeArena runner");
+    expect(JSON.parse(mockFetch.mock.calls[1]![1]?.body as string).files[0].content).toContain("CodeArena runner");
   });
 
   it("handles runtime errors", async () => {

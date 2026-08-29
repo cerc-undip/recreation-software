@@ -73,12 +73,12 @@ async function main() {
   assert("Three problems seeded", problems.length === 3, `count=${problems.length}`);
   assert(
     "All problems have test cases",
-    problems.every((p) => p.testCases.length > 0),
-    problems.map((p) => p.testCases.length).join(",")
+    problems.every((p: any) => p.testCases.length > 0),
+    problems.map((p: any) => p.testCases.length).join(",")
   );
   assert(
     "Each problem has at least one sample test case",
-    problems.every((p) => p.testCases.some((t) => t.isSample))
+    problems.every((p: any) => p.testCases.some((t: any) => t.isSample))
   );
 
   const admin = await prisma.admin.findUnique({ where: { username: env.ADMIN_DEFAULT_USERNAME } });

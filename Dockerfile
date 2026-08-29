@@ -3,6 +3,7 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json ./
+COPY prisma ./prisma
 # Use npm in Docker to avoid pnpm v10 strict lockfile and build script approval issues
 RUN npm install
 

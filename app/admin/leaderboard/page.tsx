@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 const InteractivePointsBackground = dynamic(() => import("@/components/three/InteractivePointsBackground"), { ssr: false });
 
@@ -64,11 +64,13 @@ export default function AdminLeaderboardPage() {
 
         {selectedId && (
           <div className="mb-6">
-            <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-500 text-white shadow-md hover:shadow-lg hover:shadow-blue-500/20">
-              <a href={`/api/admin/session/${selectedId}/export`} download>
-                Export CSV
-              </a>
-            </Button>
+            <a
+              href={`/api/admin/session/${selectedId}/export`}
+              download
+              className={buttonVariants({ variant: "default", className: "bg-blue-600 hover:bg-blue-500 text-white shadow-md hover:shadow-lg hover:shadow-blue-500/20" })}
+            >
+              Export CSV
+            </a>
           </div>
         )}
 
