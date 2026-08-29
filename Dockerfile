@@ -5,8 +5,9 @@ RUN npm install -g pnpm
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-# Disable frozen-lockfile so pnpm can resolve the Linux native binary missing from the Windows-generated lockfile
-RUN pnpm install --no-frozen-lockfile
+# Docker uses the globally installed pnpm; remove packageManager so pnpm does not try to verify/download @pnpm/exe-linux from a Windows-generated lockfile.
+RUN node -e "const fs=require('fs');const p=require('./package.json');delete p.packageManager;fs.writeFileSync('package.json', JSON.stringify(p));" \
+  && pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
